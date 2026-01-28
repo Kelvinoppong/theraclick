@@ -61,6 +61,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   
   const callManagerRef = useRef<WebRTCCallManager | null>(null);
   const incomingCallListenerRef = useRef<(() => void) | null>(null);
+  const incomingCallDocListenerRef = useRef<(() => void) | null>(null);
 
   // Initialize call manager
   useEffect(() => {
@@ -69,13 +70,20 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       
       callManagerRef.current.setCallbacks({
         onStatusChange: (status) => {
+          console.log("Call status changed:", status);
           setCallStatus(status);
           setIsInCall(status === "active" || status === "connecting" || status === "ringing");
         },
+        onLocalStream: (stream) => {
+          console.log("Local stream received via callback");
+          setLocalStream(stream);
+        },
         onRemoteStream: (stream) => {
+          console.log("Remote stream received via callback");
           setRemoteStream(stream);
         },
         onCallEnd: () => {
+          console.log("Call ended");
           setIsInCall(false);
           setCallStatus("idle");
           setCallType(null);
@@ -100,7 +108,12 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
   // Listen for incoming calls
   useEffect(() => {
-    if (!profile?.uid || !db || isInCall) return;
+    if (!profile?.uid || !db) return;
+
+    // Don't listen if already in a call or have an incoming call
+    if (isInCall || incomingCall) {
+      return;
+    }
 
     // Listen for call requests directed to this user
     const callsRef = collection(db, "calls");
@@ -110,15 +123,22 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       where("status", "==", "ringing")
     );
 
+    let isMounted = true;
+
     const unsub = onSnapshot(q, async (snapshot) => {
-      snapshot.docChanges().forEach(async (change) => {
-        if (change.type === "added" && !isInCall && !incomingCall) {
+      for (const change of snapshot.docChanges()) {
+        // Only process if still mounted and not in a call
+        if (!isMounted) return;
+        
+        if (change.type === "added") {
           const callData = change.doc.data();
           const callId = change.doc.id;
           
           // Get caller info
           try {
             const callerDoc = await getDoc(doc(db, "users", callData.callerId));
+            if (!isMounted) return; // Check again after async operation
+            
             const callerData = callerDoc.data();
             
             setIncomingCall({
@@ -128,29 +148,90 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
               callerAvatar: callerData?.profilePicture || callerData?.avatar || null,
               callType: callData.callType || "voice",
             });
+            
+            // Only process the first incoming call
+            break;
           } catch (error) {
             console.error("Error fetching caller info:", error);
           }
         }
-      });
+      }
+    }, (error) => {
+      // Handle Firestore listener errors gracefully
+      if (error?.code !== "cancelled") {
+        console.error("Error in incoming call listener:", error);
+      }
     });
 
     incomingCallListenerRef.current = unsub;
 
     return () => {
+      isMounted = false;
       if (incomingCallListenerRef.current) {
         incomingCallListenerRef.current();
+        incomingCallListenerRef.current = null;
       }
     };
   }, [profile?.uid, isInCall, incomingCall]);
 
+  // Listen for incoming call status changes (caller cancelled, etc.)
+  useEffect(() => {
+    if (!incomingCall || !db) return;
+
+    const callDocRef = doc(db, "calls", incomingCall.callId);
+    
+    const unsub = onSnapshot(callDocRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        // Call document was deleted - caller cancelled
+        console.log("Incoming call cancelled by caller");
+        setIncomingCall(null);
+        return;
+      }
+      
+      const callData = snapshot.data();
+      if (callData?.status === "ended" || callData?.status === "rejected" || callData?.status === "missed") {
+        // Call was ended/rejected/missed
+        console.log("Incoming call ended with status:", callData?.status);
+        setIncomingCall(null);
+      }
+    }, (error) => {
+      if (error?.code !== "cancelled") {
+        console.error("Error listening to incoming call status:", error);
+      }
+    });
+
+    incomingCallDocListenerRef.current = unsub;
+
+    return () => {
+      if (incomingCallDocListenerRef.current) {
+        incomingCallDocListenerRef.current();
+        incomingCallDocListenerRef.current = null;
+      }
+    };
+  }, [incomingCall]);
+
   const initiateCall = useCallback(async (receiverId: string, type: CallType) => {
-    if (!callManagerRef.current || !profile?.uid) return;
+    if (!callManagerRef.current) {
+      console.error("Call manager not initialized");
+      alert("Call feature not ready. Please refresh the page.");
+      return;
+    }
+    
+    if (!profile?.uid) {
+      console.error("User not logged in");
+      alert("Please log in to make calls.");
+      return;
+    }
 
     try {
+      console.log("Initiating call to:", receiverId, "Type:", type);
+      
+      // Set call state immediately
       setIsCaller(true);
       setCallType(type);
       setRemoteUserId(receiverId);
+      setIsInCall(true);
+      setCallStatus("ringing");
       
       // Get receiver info
       if (db) {
@@ -165,24 +246,54 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       }
 
       const callId = await callManagerRef.current.initiateCall(receiverId, type);
+      console.log("Call initiated, callId:", callId);
+      
       const stream = callManagerRef.current.getLocalStream();
       if (stream) {
         setLocalStream(stream);
+        console.log("Local stream set");
+      } else {
+        console.warn("No local stream available");
       }
     } catch (error: any) {
       console.error("Error initiating call:", error);
-      throw error;
+      alert(`Failed to start call: ${error?.message || "Unknown error"}`);
+      // Reset all state on error
+      setIsCaller(false);
+      setCallType(null);
+      setRemoteUserId(null);
+      setRemoteUserName(null);
+      setRemoteUserAvatar(null);
+      setIsInCall(false);
+      setCallStatus("idle");
     }
   }, [profile?.uid]);
 
   const acceptCall = useCallback(async (callId: string, callerId: string, type: CallType) => {
-    if (!callManagerRef.current || !profile?.uid) return;
+    if (!callManagerRef.current) {
+      console.error("Call manager not initialized");
+      alert("Call feature not ready. Please refresh the page.");
+      return;
+    }
+    
+    if (!profile?.uid) {
+      console.error("User not logged in");
+      alert("Please log in to accept calls.");
+      return;
+    }
 
     try {
+      console.log("Accepting call:", callId, "From:", callerId, "Type:", type);
+      
+      // Clear incoming call state FIRST to prevent re-triggering
+      setIncomingCall(null);
+      
+      // Set call state
       setIsCaller(false);
       setCallType(type);
       setRemoteUserId(callerId);
-      setIncomingCall(null);
+      setIsInCall(true);
+      setCallStatus("connecting");
       
       // Get caller info
       if (db) {
@@ -197,13 +308,26 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       }
 
       await callManagerRef.current.acceptCall(callId, callerId, type);
+      console.log("Call accepted successfully");
+      
       const stream = callManagerRef.current.getLocalStream();
       if (stream) {
         setLocalStream(stream);
+        console.log("Local stream set");
+      } else {
+        console.warn("No local stream available");
       }
     } catch (error: any) {
       console.error("Error accepting call:", error);
-      throw error;
+      alert(`Failed to accept call: ${error?.message || "Unknown error"}`);
+      // Reset all state on error
+      setIncomingCall(null);
+      setIsInCall(false);
+      setCallStatus("idle");
+      setCallType(null);
+      setRemoteUserId(null);
+      setRemoteUserName(null);
+      setRemoteUserAvatar(null);
     }
   }, [profile?.uid]);
 
@@ -230,14 +354,16 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
   const toggleMute = useCallback(() => {
     if (!callManagerRef.current) return;
-    const newMuteState = callManagerRef.current.toggleMute();
-    setIsMuted(!newMuteState);
+    const isNowEnabled = callManagerRef.current.toggleMute();
+    // If audio is enabled, we're NOT muted. If disabled, we ARE muted.
+    setIsMuted(!isNowEnabled);
   }, []);
 
   const toggleVideo = useCallback(() => {
     if (!callManagerRef.current) return;
-    const newVideoState = callManagerRef.current.toggleVideo();
-    setIsVideoOff(!newVideoState);
+    const isNowEnabled = callManagerRef.current.toggleVideo();
+    // If video is enabled, video is NOT off. If disabled, video IS off.
+    setIsVideoOff(!isNowEnabled);
   }, []);
 
   const value: CallContextValue = {

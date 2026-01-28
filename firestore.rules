@@ -63,11 +63,21 @@ service cloud.firestore {
 
     // Calls - WebRTC signaling
     match /calls/{callId} {
-      allow read, write: if isSignedIn() && (
+      // Allow read if user is caller or receiver
+      allow read: if isSignedIn() && (
         request.auth.uid == resource.data.callerId ||
-        request.auth.uid == resource.data.receiverId ||
-        request.auth.uid == request.resource.data.callerId ||
-        request.auth.uid == request.resource.data.receiverId
+        request.auth.uid == resource.data.receiverId
+      );
+      
+      // Allow create if user is the caller (creating a new call)
+      allow create: if isSignedIn() && (
+        request.auth.uid == request.resource.data.callerId
+      );
+      
+      // Allow update/delete if user is caller or receiver
+      allow update, delete: if isSignedIn() && (
+        request.auth.uid == resource.data.callerId ||
+        request.auth.uid == resource.data.receiverId
       );
       
       match /signals/{signalId} {
