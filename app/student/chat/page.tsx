@@ -165,8 +165,7 @@ export default function ChatPage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
-      try {
-        const res = await fetch("/api/ai/chat", {
+      const res = await fetch("/api/ai/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -199,33 +198,34 @@ export default function ChatPage() {
         };
         setMessages((prev) => [...prev, aiMessage]);
         await appendAiThreadMessage(profile, threadId, { sender: "ai", text: aiMessage.text });
-      } catch (fetchError: any) {
-        clearTimeout(timeoutId);
-        if (fetchError.name === "AbortError") {
-          console.warn("Request was aborted (timeout or cancelled)");
-          const timeoutMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            text: "The request took too long. Please try again.",
-            sender: "ai",
-            timestamp: new Date(),
-          };
-          setMessages((prev) => [...prev, timeoutMessage]);
-          await appendAiThreadMessage(profile, threadId, { sender: "ai", text: timeoutMessage.text });
-        } else {
-          console.error("Chat error:", fetchError);
-          const fallback: Message = {
-            id: (Date.now() + 1).toString(),
-            text:
-              "I'm having trouble responding right now. Can you try again? If this feels urgent, consider reaching out to someone you trust nearby.",
-            sender: "ai",
-            timestamp: new Date(),
-          };
-          setMessages((prev) => [...prev, fallback]);
-          await appendAiThreadMessage(profile, threadId, { sender: "ai", text: fallback.text });
-        }
-      } finally {
-        setIsTyping(false);
+    } catch (fetchError: unknown) {
+      clearTimeout(timeoutId);
+      const errorName = fetchError instanceof Error ? fetchError.name : "";
+      if (errorName === "AbortError") {
+        console.warn("Request was aborted (timeout or cancelled)");
+        const timeoutMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: "The request took too long. Please try again.",
+          sender: "ai",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, timeoutMessage]);
+        await appendAiThreadMessage(profile, threadId, { sender: "ai", text: timeoutMessage.text });
+      } else {
+        console.error("Chat error:", fetchError);
+        const fallback: Message = {
+          id: (Date.now() + 1).toString(),
+          text:
+            "I'm having trouble responding right now. Can you try again? If this feels urgent, consider reaching out to someone you trust nearby.",
+          sender: "ai",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, fallback]);
+        await appendAiThreadMessage(profile, threadId, { sender: "ai", text: fallback.text });
       }
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

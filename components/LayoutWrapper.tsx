@@ -30,7 +30,6 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Allow peer mentors to access forums, but redirect other non-students from student routes
     if (pathname.startsWith("/student")) {
       if (role === "student") {
         // Allow access
@@ -44,17 +43,22 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   }, [loading, profile?.role, profile?.status, pathname, router]);
 
   return (
-    <div className="flex min-h-screen bg-gray-900">
+    <div className="flex min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900">
       <Sidebar />
       <main className="flex-1 pb-20 md:pb-0 md:overflow-auto">
         <div className="min-h-screen w-full">
           {loading ? (
-            <div className="flex min-h-screen items-center justify-center bg-gray-900">
+            <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900">
               <div className="text-center">
-                <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-                <p className="text-sm font-medium text-white">Preparing your safe space…</p>
-                <p className="mt-1 text-sm text-gray-500">
-                  Setting up your session.
+                {/* Loading spinner with brand colors */}
+                <div className="relative mx-auto mb-6 h-16 w-16">
+                  <div className="absolute inset-0 rounded-full border-4 border-brand-teal/20" />
+                  <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-brand-teal animate-spin" />
+                  <div className="absolute inset-2 rounded-full border-2 border-transparent border-b-sun-400 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+                </div>
+                <p className="font-display text-lg font-semibold text-white">Preparing your space…</p>
+                <p className="mt-2 text-sm text-gray-500">
+                  Getting everything ready for you
                 </p>
               </div>
             </div>

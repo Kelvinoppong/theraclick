@@ -9,19 +9,67 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        display: ["'Poppins'", "system-ui", "sans-serif"],
+        sans: ["'Inter'", "system-ui", "sans-serif"],
+      },
       colors: {
+        // Theraklick brand colors from logo
+        brand: {
+          teal: "#2A9D8F",
+          "teal-light": "#3DB4A5",
+          "teal-dark": "#21867A",
+          yellow: "#F4B942",
+          "yellow-light": "#F7CA6B",
+          "yellow-dark": "#D9A033",
+          white: "#FFFFFF",
+          cream: "#FEFCF3",
+        },
+        // Extended palette
+        tk: {
+          50: "#F0FDF9",
+          100: "#CCFBEF",
+          200: "#9AF5E1",
+          300: "#5FE9CE",
+          400: "#2DD4B8",
+          500: "#2A9D8F",
+          600: "#21867A",
+          700: "#1A6B62",
+          800: "#14524C",
+          900: "#0F3D39",
+          950: "#082320",
+        },
+        sun: {
+          50: "#FFFBEB",
+          100: "#FEF3C7",
+          200: "#FDE68A",
+          300: "#FCD34D",
+          400: "#F4B942",
+          500: "#D9A033",
+          600: "#B8860B",
+          700: "#92400E",
+          800: "#78350F",
+          900: "#451A03",
+        },
+        // Dark theme colors
+        dark: {
+          900: "#0C1821",
+          800: "#1B2838",
+          700: "#2C3E50",
+          600: "#34495E",
+        },
         primary: {
-          DEFAULT: "#4ADE80",
-          50: "#F0FDF4",
-          100: "#DCFCE7",
-          200: "#BBF7D0",
-          300: "#86EFAC",
-          400: "#4ADE80",
-          500: "#22C55E",
-          600: "#16A34A",
-          700: "#15803D",
-          800: "#166534",
-          900: "#14532D",
+          DEFAULT: "#2A9D8F",
+          50: "#F0FDF9",
+          100: "#CCFBEF",
+          200: "#9AF5E1",
+          300: "#5FE9CE",
+          400: "#2DD4B8",
+          500: "#2A9D8F",
+          600: "#21867A",
+          700: "#1A6B62",
+          800: "#14524C",
+          900: "#0F3D39",
         },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -64,5 +112,3 @@ const config: Config = {
 };
 
 export default config;
-
-

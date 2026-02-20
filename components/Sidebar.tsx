@@ -12,7 +12,6 @@ import {
   LogOut,
   Mail,
   Calendar,
-  MessageCircle
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { cn } from "@/lib/utils";
@@ -58,13 +57,19 @@ export function Sidebar() {
   const navItems = getNavItems();
 
   return (
-    <aside className="hidden h-screen w-64 shrink-0 border-r border-gray-800/50 bg-gray-900 md:flex md:flex-col">
-      <div className="flex h-16 items-center border-b border-gray-800/50 px-6">
-        <Logo className="text-white" />
+    <aside className="hidden h-screen w-64 shrink-0 border-r border-brand-teal/20 bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900 md:flex md:flex-col">
+      {/* Decorative top border */}
+      <div className="h-1 w-full brand-border" />
+      
+      {/* Logo section - compact */}
+      <div className="flex items-center justify-center border-b border-brand-teal/20 px-4 py-3">
+        <Logo size="small" />
       </div>
-      <div className="border-b border-gray-800/50 px-6 py-4">
-        <p className="text-xs font-medium text-gray-500">Signed in as</p>
-        <p className="mt-1 truncate text-sm font-semibold text-white">
+      
+      {/* User info - compact */}
+      <div className="border-b border-brand-teal/20 px-4 py-2.5 bg-brand-teal/5">
+        <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Signed in as</p>
+        <p className="mt-0.5 truncate text-sm font-semibold text-white">
           {loading
             ? "…"
             : profile?.role === "student" && profile.anonymousEnabled && profile.anonymousId
@@ -72,7 +77,9 @@ export function Sidebar() {
               : profile?.fullName || "—"}
         </p>
       </div>
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      
+      {/* Navigation */}
+      <nav className="flex-1 space-y-1 px-3 py-3 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
@@ -81,24 +88,32 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300",
                 isActive
-                  ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-400"
-                  : "text-gray-400 hover:bg-white/5 hover:text-white"
+                  ? "bg-gradient-to-r from-brand-teal/25 to-sun-400/15 text-brand-teal border border-brand-teal/30 shadow-lg shadow-brand-teal/10"
+                  : "text-gray-400 hover:bg-brand-teal/10 hover:text-white border border-transparent"
               )}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className={cn(
+                "h-4 w-4 transition-all duration-300",
+                isActive ? "text-brand-teal" : "text-gray-500 group-hover:text-brand-teal"
+              )} />
               <span>{item.label}</span>
+              {isActive && (
+                <div className="ml-auto h-1.5 w-1.5 rounded-full bg-brand-teal animate-pulse" />
+              )}
             </Link>
           );
         })}
       </nav>
-      <div className="border-t border-gray-800/50 p-4">
+      
+      {/* Logout */}
+      <div className="border-t border-brand-teal/20 p-3">
         <button
           onClick={() => void logout()}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-400 transition-all duration-300 hover:bg-red-500/20 hover:text-red-400 border border-transparent hover:border-red-500/30"
         >
-          <LogOut className="h-5 w-5" />
+          <LogOut className="h-4 w-4" />
           <span>Logout</span>
         </button>
       </div>

@@ -3,35 +3,32 @@
 import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth";
-import { ArrowLeft, GraduationCap, HeartHandshake, UserCheck } from "lucide-react";
+import { ArrowLeft, GraduationCap, HeartHandshake, UserCheck, Sparkles } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 type Role = "student" | "peer-mentor" | "counselor";
 
 const roleConfig = {
   student: {
-    title: "Student Sign In",
-    subtitle: "Access your support dashboard",
-    image: "/images/student-hero.jpg",
+    title: "Welcome Back",
+    subtitle: "Sign in to access your support dashboard",
     icon: GraduationCap,
     createLink: "/signup/student",
     createLabel: "Create account",
   },
   "peer-mentor": {
-    title: "Peer Mentor Sign In",
+    title: "Welcome Back, Mentor",
     subtitle: "Continue supporting students",
-    image: "/images/peer-mentor-hero.jpg",
     icon: HeartHandshake,
     createLink: "/apply/peer-mentor",
     createLabel: "Apply as mentor",
   },
   counselor: {
-    title: "Counselor Sign In",
+    title: "Welcome Back, Counselor",
     subtitle: "Access your counselor dashboard",
-    image: "/images/counselor-hero.jpg",
     icon: UserCheck,
     createLink: "/apply/counselor",
     createLabel: "Apply as counselor",
@@ -52,10 +49,8 @@ export function LoginClient({ initialRole }: { initialRole: Role }) {
   const config = useMemo(() => roleConfig[role], [role]);
   const Icon = config.icon;
 
-  // Redirect when profile is loaded after login
   useEffect(() => {
     if (hasLoggedIn && !authLoading && profile && profile.role) {
-      // Check if user should be redirected based on status
       if (profile.status === "pending") {
         router.push("/pending-approval");
       } else if (profile.status === "disabled") {
@@ -63,10 +58,8 @@ export function LoginClient({ initialRole }: { initialRole: Role }) {
         setHasLoggedIn(false);
         setIsLoading(false);
       } else if (profile.role === role) {
-        // Only redirect if the role matches what they're trying to log in as
         router.push(role === "student" ? "/student/dashboard" : `/${role}/dashboard`);
       } else {
-        // Role mismatch - redirect to their actual role dashboard
         router.push(profile.role === "student" ? "/student/dashboard" : `/${profile.role}/dashboard`);
       }
     }
@@ -80,121 +73,126 @@ export function LoginClient({ initialRole }: { initialRole: Role }) {
     try {
       await loginWithEmail(email, password);
       setHasLoggedIn(true);
-      // Don't set isLoading to false here - let useEffect handle redirect
-      // The loading state will be cleared when redirect happens
-    } catch (err: any) {
-      setError(err?.message || "Could not sign in. Please try again.");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Could not sign in. Please try again.";
+      setError(errorMessage);
       setIsLoading(false);
       setHasLoggedIn(false);
     }
   };
 
   return (
-    <div className="flex h-screen min-h-[600px] overflow-hidden">
-      {/* Left - Hero Image */}
-      <div className="relative hidden w-1/2 lg:block">
-        <Image
-          src={config.image}
-          alt={config.title}
-          fill
-          priority
-          className="object-cover"
-          sizes="50vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-gray-900/50" />
-        
-        {/* Back to home */}
-        <Link href="/" className="absolute left-6 top-6 z-10 flex items-center gap-2 text-white/80 hover:text-white">
-          <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm font-medium">Back</span>
-        </Link>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900">
+      {/* Decorative background elements */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-40 top-20 h-[400px] w-[400px] rounded-full bg-brand-teal/10 blur-[120px] tk-float" />
+        <div className="absolute -right-40 bottom-20 h-[350px] w-[350px] rounded-full bg-sun-400/8 blur-[100px] tk-float2" />
+        <div className="absolute top-0 left-0 right-0 h-1.5 brand-border" />
       </div>
 
-      {/* Right - Dark Glass Panel */}
-      <div className="relative flex w-full flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 lg:w-1/2">
-        {/* Floating orbs */}
-        <div className="pointer-events-none absolute -left-32 -top-32 h-64 w-64 rounded-full bg-primary-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 -right-32 h-64 w-64 rounded-full bg-primary-400/10 blur-3xl" />
-
-        {/* Content */}
-        <div className="relative z-10 flex flex-1 flex-col justify-center overflow-y-auto px-6 py-8 lg:px-12">
-          {/* Mobile back */}
-          <Link href="/" className="mb-6 flex items-center gap-2 text-gray-400 hover:text-white lg:hidden">
+      <div className="relative z-10 flex min-h-screen flex-col">
+        {/* Header */}
+        <header className="flex items-center justify-between px-6 py-6 md:px-12">
+          <Logo />
+          <Link href="/" className="flex items-center gap-2 text-gray-400 hover:text-gray-200 transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm font-medium">Back</span>
+            <span className="text-sm font-medium">Back to home</span>
           </Link>
+        </header>
 
-          <div className="mx-auto w-full max-w-sm">
+        {/* Main Content */}
+        <main className="flex flex-1 flex-col items-center justify-center px-6 py-12 md:px-12">
+          <div className="w-full max-w-md">
             {/* Role badge */}
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gray-700 bg-gray-800/50 px-4 py-2">
-              <Icon className="h-4 w-4 text-primary-400" />
-              <span className="text-sm font-medium text-gray-300">
-                {role === "student" ? "Student" : role === "peer-mentor" ? "Peer Mentor" : "Counselor"}
-              </span>
+            <div className="mb-8 flex justify-center">
+              <div className="inline-flex items-center gap-3 rounded-full border border-brand-teal/30 bg-brand-teal/10 px-5 py-3">
+                <Icon className="h-5 w-5 text-brand-teal" />
+                <span className="text-sm font-semibold text-gray-200">
+                  {role === "student" ? "Student" : role === "peer-mentor" ? "Peer Mentor" : "Counselor"}
+                </span>
+              </div>
             </div>
 
-            <h1 className="text-3xl font-bold tracking-tight text-white">{config.title}</h1>
-            <p className="mt-2 text-gray-400">{config.subtitle}</p>
-
-            {!isFirebaseBacked && (
-              <div className="mt-5 rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4">
-                <p className="text-sm font-semibold text-yellow-300">Demo mode</p>
-                <p className="mt-1 text-sm text-yellow-300/70">
-                  Firebase isn't configured. Add keys in `.env.local`.
-                </p>
-              </div>
-            )}
-
-            <form onSubmit={handleLogin} className="mt-6 space-y-4">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-300">Email</label>
-                <Input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
-                  type="email"
-                  autoComplete="email"
-                  className="border-gray-700 bg-gray-800/50 text-white placeholder:text-gray-500 focus:border-primary-500 focus:ring-primary-500"
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-300">Password</label>
-                <Input
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Your password"
-                  type="password"
-                  autoComplete="current-password"
-                  className="border-gray-700 bg-gray-800/50 text-white placeholder:text-gray-500 focus:border-primary-500 focus:ring-primary-500"
-                />
+            {/* Login Card */}
+            <div className="tk-card p-8">
+              <div className="text-center mb-8">
+                <h1 className="font-display text-3xl font-bold text-white">{config.title}</h1>
+                <p className="mt-2 text-gray-400">{config.subtitle}</p>
               </div>
 
-              {error && <p className="text-sm font-medium text-red-400">{error}</p>}
+              {!isFirebaseBacked && (
+                <div className="mb-6 rounded-xl border border-sun-400/30 bg-sun-400/10 p-4">
+                  <p className="text-sm font-semibold text-sun-400">Demo Mode</p>
+                  <p className="mt-1 text-sm text-gray-400">
+                    Firebase is not configured. Add keys in `.env.local`.
+                  </p>
+                </div>
+              )}
 
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full bg-primary-500 text-white hover:bg-primary-400"
-                disabled={!isFirebaseBacked || isLoading || !email.trim() || !password.trim()}
-              >
-                {isLoading ? "Signing in..." : "Sign in"}
-              </Button>
-            </form>
+              <form onSubmit={handleLogin} className="space-y-5">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-gray-200">Email</label>
+                  <Input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    type="email"
+                    autoComplete="email"
+                    className="border-gray-700/50 bg-dark-800/50 text-white placeholder:text-gray-600 focus:border-brand-teal focus:ring-brand-teal/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-gray-200">Password</label>
+                  <Input
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Your password"
+                    type="password"
+                    autoComplete="current-password"
+                    className="border-gray-700/50 bg-dark-800/50 text-white placeholder:text-gray-600 focus:border-brand-teal focus:ring-brand-teal/30"
+                  />
+                </div>
 
-            <div className="mt-6 text-center">
-              <span className="text-sm text-gray-500">Don't have an account? </span>
-              <Link href={config.createLink} className="text-sm font-semibold text-primary-400 hover:underline">
-                {config.createLabel}
-              </Link>
+                {error && (
+                  <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3">
+                    <p className="text-sm font-medium text-red-400">{error}</p>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-brand-teal to-tk-600 py-6 text-base font-bold text-white shadow-lg shadow-brand-teal/30 transition-all hover:shadow-xl hover:shadow-brand-teal/50 disabled:opacity-50"
+                  disabled={!isFirebaseBacked || isLoading || !email.trim() || !password.trim()}
+                >
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      Signing in...
+                    </span>
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
+              </form>
+
+              <div className="mt-6 text-center">
+                <span className="text-sm text-gray-500">Don&apos;t have an account? </span>
+                <Link href={config.createLink} className="text-sm font-semibold text-brand-teal hover:text-brand-teal-light transition-colors">
+                  {config.createLabel}
+                </Link>
+              </div>
+            </div>
+
+            {/* Encouragement */}
+            <div className="mt-8 text-center">
+              <div className="flex items-center justify-center gap-2 text-gray-500">
+                <Sparkles className="h-4 w-4 text-brand-teal" />
+                <p className="text-sm">Your journey to wellness starts here</p>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Mobile background */}
-      <div className="fixed inset-0 -z-10 lg:hidden">
-        <Image src={config.image} alt={config.title} fill priority className="object-cover" sizes="100vw" />
-        <div className="absolute inset-0 bg-gray-900/90" />
+        </main>
       </div>
     </div>
   );
