@@ -43,13 +43,13 @@ export default function WelcomePage() {
   const splashExiting = phase === 4;
 
   return (
-    <div className="relative min-h-[100dvh] overflow-hidden bg-[#0F4F47]">
+    <div className="relative min-h-[100dvh] overflow-hidden bg-[#0F4F47] dark:bg-gray-950">
 
       {/* ════════════════════════════════════════
           SPLASH OVERLAY
           ════════════════════════════════════════ */}
       <div
-        className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0F4F47]
+        className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0F4F47] dark:bg-gray-950
           transition-all duration-[800ms] ease-[cubic-bezier(0.16,1,0.3,1)]
           ${splashExiting
             ? "scale-[1.08] opacity-0"
@@ -86,7 +86,7 @@ export default function WelcomePage() {
         ${phase >= 5 ? "opacity-100 scale-100" : "opacity-0 scale-[0.95]"}`}>
 
         {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0F4F47] via-[#1A7A6E] to-[#2BB5A0]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0F4F47] via-[#1A7A6E] to-[#2BB5A0] dark:from-gray-950 dark:via-gray-900 dark:to-gray-800" />
 
         {/* Floating ambient orbs — Layer 2 */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -142,7 +142,7 @@ export default function WelcomePage() {
             <button
               onClick={() => router.push("/signup/student")}
               className="group flex w-full items-center justify-center gap-2 rounded-full
-                bg-white py-4 text-[15px] font-semibold text-[#0F4F47]
+                bg-white dark:bg-gray-950 py-4 text-[15px] font-semibold text-[#0F4F47] dark:text-gray-100
                 shadow-xl shadow-black/10
                 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                 hover:scale-[1.04] hover:shadow-2xl active:scale-[0.97]"
@@ -157,8 +157,8 @@ export default function WelcomePage() {
               Already have an account?{" "}
               <button
                 onClick={() => router.push("/login?role=student")}
-                className="font-semibold text-[#F5C842] underline-offset-4
-                  transition-colors hover:text-[#FFE480] hover:underline"
+                className="font-semibold text-[#F5C842] dark:text-amber-400 underline-offset-4
+                  transition-colors hover:text-[#FFE480] dark:hover:text-amber-300 hover:underline"
               >
                 Sign in
               </button>
@@ -173,21 +173,21 @@ export default function WelcomePage() {
             <div className="flex gap-3">
               <button
                 onClick={() => router.push("/login?role=peer-mentor")}
-                className="rounded-full bg-[#F5C842] px-6 py-2.5
-                  text-[13px] font-semibold text-[#0D1F1D]
+                className="rounded-full bg-[#F5C842] dark:bg-amber-600 px-6 py-2.5
+                  text-[13px] font-semibold text-[#0D1F1D] dark:text-gray-100
                   shadow-lg shadow-[#F5C842]/20
                   transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-                  hover:scale-[1.04] hover:bg-[#FFE480] hover:shadow-xl active:scale-[0.97]"
+                  hover:scale-[1.04] hover:bg-[#FFE480] dark:hover:bg-amber-500 hover:shadow-xl active:scale-[0.97]"
               >
                 Peer mentor
               </button>
               <button
                 onClick={() => router.push("/login?role=counselor")}
-                className="rounded-full bg-[#F5C842] px-6 py-2.5
-                  text-[13px] font-semibold text-[#0D1F1D]
+                className="rounded-full bg-[#F5C842] dark:bg-amber-600 px-6 py-2.5
+                  text-[13px] font-semibold text-[#0D1F1D] dark:text-gray-100
                   shadow-lg shadow-[#F5C842]/20
                   transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-                  hover:scale-[1.04] hover:bg-[#FFE480] hover:shadow-xl active:scale-[0.97]"
+                  hover:scale-[1.04] hover:bg-[#FFE480] dark:hover:bg-amber-500 hover:shadow-xl active:scale-[0.97]"
               >
                 Counselor
               </button>

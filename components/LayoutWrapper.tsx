@@ -44,14 +44,14 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   }, [loading, profile?.role, profile?.status, pathname, router]);
 
   return (
-    <div className="flex h-dvh flex-col bg-white">
+    <div className="flex h-dvh flex-col bg-white dark:bg-gray-950">
       <Sidebar />
       <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
         {loading ? (
           <div className="flex min-h-[60vh] items-center justify-center">
             <div className="text-center">
               <div className="relative mx-auto mb-5 h-14 w-14">
-                <div className="absolute inset-0 rounded-full border-2 border-green-200" />
+                <div className="absolute inset-0 rounded-full border-2 border-green-200 dark:border-green-800" />
                 <div
                   className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-green-600"
                   style={{ animationDuration: "1s" }}
@@ -60,8 +60,8 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
                   <Brain className="h-6 w-6 text-green-600" strokeWidth={1.5} />
                 </div>
               </div>
-              <p className="text-sm font-medium text-gray-900">Preparing your safe space...</p>
-              <p className="mt-1 text-xs text-gray-500">Setting up your session.</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Preparing your safe space...</p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Setting up your session.</p>
             </div>
           </div>
         ) : (
